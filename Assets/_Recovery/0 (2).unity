@@ -149,8 +149,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BoardGenerator
   tilePrefab: {fileID: 4982436567074377880, guid: 94ccf12e25de7344ba2e23ecd677ce89, type: 3}
-  tileColor1: {r: 0, g: 0, b: 0, a: 1}
-  tileColor2: {r: 1, g: 1, b: 1, a: 1}
+  tileColor1: {r: 0.4627451, g: 0.5882353, b: 0.3372549, a: 1}
+  tileColor2: {r: 0.93333334, g: 0.93333334, b: 0.81960785, a: 1}
   camaraX: 7.5
   cameraY: 3.5
   cameraSize: 5
@@ -532,6 +532,65 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1835462044
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1835462046}
+  - component: {fileID: 1835462045}
+  m_Layer: 0
+  m_Name: PieceManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1835462045
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1835462044}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fa802b852dea674397df88ca95196fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PieceManager
+  piecePrefab: {fileID: 6244946429912501226, guid: c97b72efeef83e941a200d47b113b506, type: 3}
+  whiteSprites:
+  - {fileID: 820425712399195265, guid: 6ea7eb762aa8ea844a65df3a19445a97, type: 3}
+  - {fileID: -8623283996767849043, guid: d062cd3093e41a240a23246adb3ae858, type: 3}
+  - {fileID: -5302425523947670194, guid: 7cd086dbab8e12447bb451336a4d26f9, type: 3}
+  - {fileID: 9001087089401012291, guid: 3fdeccc1f858a6a469da010fc3064aff, type: 3}
+  - {fileID: 8948481942734573964, guid: 44ca8fe8672f2ec41ad8cec2b8b25d0f, type: 3}
+  - {fileID: 7373568282130933684, guid: 7a54537f2e6bf8b46966c9bd30725d25, type: 3}
+  blackSprites:
+  - {fileID: -3504551162591942751, guid: f164cf22a7d91f141a34404ec75dda48, type: 3}
+  - {fileID: -1367190633218832749, guid: 6abe023ec6a6354469be5d1db71b64a1, type: 3}
+  - {fileID: 7950243545706966615, guid: fe08b836776b9cf4e8eaf26f3d7e5bf5, type: 3}
+  - {fileID: 1725152510385423372, guid: 4eafc70e52269bd48b9b3f0c437e4de5, type: 3}
+  - {fileID: -7976473484848571988, guid: 5ad6422614a0e454f879c7f369f1ee71, type: 3}
+  - {fileID: 2209202874075259740, guid: 08c773eaf4c38d84cab9dc8ce5d5623a, type: 3}
+--- !u!4 &1835462046
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1835462044}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1917054804
 GameObject:
   m_ObjectHideFlags: 0
@@ -563,6 +622,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
   gridPivot: {fileID: 836974638}
   rotationTime: 1
+  pieceManager: {fileID: 1835462044}
   currentState: 0
 --- !u!4 &1917054806
 Transform:
@@ -589,3 +649,4 @@ SceneRoots:
   - {fileID: 836974639}
   - {fileID: 1138580682}
   - {fileID: 1917054806}
+  - {fileID: 1835462046}

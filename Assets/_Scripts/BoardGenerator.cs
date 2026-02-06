@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.Tilemaps;
 
 public class BoardGenerator : MonoBehaviour
 {
@@ -10,6 +12,7 @@ public class BoardGenerator : MonoBehaviour
     
 
     private GameObject[,] board = new GameObject[8, 8];
+    public Color[,] boardColorMap = new Color[8,8];
 
     void Start()
     {
@@ -22,13 +25,29 @@ public class BoardGenerator : MonoBehaviour
         {
             for (int y = 0; y < 8; y++)
             {
+                bool isOffset = (x + y) % 2 == 0;
+
                 GameObject newTile = Instantiate(tilePrefab, new Vector3(x, y, 0), Quaternion.identity);
+
+                Square script = newTile.GetComponent<Square>();
+
                 newTile.transform.parent = transform;
                 newTile.name = $"Tile [{x},{y}]";
 
-                bool isOffset = (x + y) % 2 == 0;
+                Color assignedColor = isOffset? tileColor1 : tileColor2;
+                
+                script.Init(x,y,assignedColor);
+                
+
+
+                
+
                 newTile.GetComponent<SpriteRenderer>().color = isOffset ? tileColor1 : tileColor2;
+            
+                
                 board[x, y] = newTile;
+
+
             }
         }
 
@@ -43,6 +62,9 @@ public class BoardGenerator : MonoBehaviour
 
     void Update()
     {
-        // CameraSettings();
+        // if (Mouse.current.leftButton.wasPressedThisFrame)
+        // {
+        //     Debug.Log(OriginalColor);
+        // }
     }
 }
