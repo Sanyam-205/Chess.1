@@ -151,4 +151,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f7ae37e154af294cba4fd2ff96b7efe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Square
+  x: 0
+  y: 0
   highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}

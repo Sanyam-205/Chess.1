@@ -41,6 +41,13 @@ public class Piece : MonoBehaviour
 
     }
 
+    private void LateUpdate()
+{
+    // Force the global rotation to always be 0 (Upright),
+    // even if the parent (Board) is spinning like crazy.
+    transform.rotation = Quaternion.identity;
+}
+
 //   public void Init(PieceType newType, TeamColor newTeam, Sprite newSprite)
 // {
 //     Debug.Log($"🕵️ Init called on object: '{gameObject.name}'");

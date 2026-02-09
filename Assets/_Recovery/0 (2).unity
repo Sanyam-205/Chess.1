@@ -601,6 +601,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1917054806}
   - component: {fileID: 1917054805}
+  - component: {fileID: 1917054807}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -621,8 +622,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
   gridPivot: {fileID: 836974638}
-  rotationTime: 1
+  rotationTime: 0.8
   pieceManager: {fileID: 1835462044}
+  movementSystem: {fileID: 1917054807}
   currentState: 0
 --- !u!4 &1917054806
 Transform:
@@ -639,6 +641,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1917054807
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1917054804}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87278354c98523940b1c9ce26bd90293, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Movement
+  pieceManager: {fileID: 1835462045}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
