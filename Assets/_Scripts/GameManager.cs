@@ -235,7 +235,8 @@ public class GameManager : MonoBehaviour
                     {
                         // Move worked! End the turn.
                         DeSelectSquare();
-                        CompleteTurn(); // Rotates board + Switches state
+                        //CompleteTurn(); // Rotates board + Switches state
+                        SwitchTurn();
                         Debug.Log(currentState);
                     }
                     else

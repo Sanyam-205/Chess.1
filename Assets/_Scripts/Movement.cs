@@ -15,13 +15,15 @@ public class Movement : MonoBehaviour
     {   
         Piece pieceToMove = pieceManager.GetPieceAtGrid (startSquare.x, startSquare.y);
         
-        finalSquare = endSquare;
+        // finalSquare = endSquare;
         
-        initialSquare = startSquare;
+        // initialSquare = startSquare;
         
         if (pieceToMove == null) return false;
 
         Piece OccupiedPiece = pieceManager.GetPieceAtGrid(endSquare.x, endSquare.y);
+
+        if(!IsValidPatern(pieceToMove, startSquare, endSquare)) return false;
 
         if(OccupiedPiece != null)
         {
@@ -47,10 +49,109 @@ public class Movement : MonoBehaviour
     
     }
 
-    public void IsValidPatern()
+
+    public bool IsPathClear(Square start, Square end)
     {
-        deltaX = Math.Abs(initialSquare.x - finalSquare.x);
-        deltaY = Math.Abs(initialSquare.y - finalSquare.y);
+        
+        int stepX = Math.Sign(end.x - start.x);
+        int stepY = Math.Sign(end.y - start.y);
+
+        int currentX = start.x + stepX;
+        int currentY = start.y + stepY;
+
+        int safetyBuffer = 0;   
+        while(currentX != end.x || currentY != end.y)
+        {
+            if(safetyBuffer++ > 8) break;
+            if (pieceManager.GetPieceAtGrid(currentX, currentY)!= null) return false;
+            currentX+=stepX;
+            currentY+=stepY;
+        }
+        
+        
+        return true;
+    }
+
+    public bool IsValidPatern(Piece piece, Square start, Square end)
+    {
+        deltaX = Mathf.Abs(start.x - end.x);
+        deltaY = Mathf.Abs(start.y - end.y);
+
+        int pawnDirection = piece.team == TeamColor.White ? 1 : -1;
+        int startRank = piece.team == TeamColor.White ? 1 : 6;
+                
+       
+        switch(piece.type)
+        {
+            
+            case PieceType.Pawn:
+            if (
+                
+                (pieceManager.GetPieceAtGrid(end.x, end.y)==null && deltaX ==0 && end.y-start.y == pawnDirection)||
+                ((startRank ==start.y) && 
+                pieceManager.GetPieceAtGrid(end.x, end.y) == null && pieceManager.GetPieceAtGrid(end.x, end.y-pawnDirection) == null 
+                && deltaX ==0 && end.y-start.y == pawnDirection*2)          
+                
+                )
+            {
+                return true;
+            }
+            if (deltaX == 1 && end.y - start.y == pawnDirection)
+            {
+                Piece targetPiece = pieceManager.GetPieceAtGrid(end.x, end.y);
+
+                // Is there a piece there? AND is it on the other team?
+                if (targetPiece != null && targetPiece.team != piece.team)
+                {
+                    return true; 
+                }
+            }
+            
+            
+            break;
+           
+            case PieceType.Rook:
+            if ((deltaX == 0 || deltaY ==0) && IsPathClear(start, end))
+            {
+                return true;
+            }
+            break;
+            
+        
+            case PieceType.Bishop:
+            if ((deltaX==deltaY) && IsPathClear(start, end))
+            {
+                return true;
+            }
+            break;
+
+            case PieceType.Queen:
+            if((deltaX==deltaY || deltaX == 0 || deltaY ==0) && IsPathClear(start, end))
+            {
+                return true;                
+            }
+            break;
+
+            case PieceType.Knight:
+            if(deltaX ==2 && deltaY == 1 || deltaY ==2 && deltaX ==1)
+            {
+                return true;
+            }
+            break;
+
+            case PieceType.King:
+            if(deltaX <= 1 && deltaY  <=1)
+            {
+                return true;
+            }
+            break;
+
+            
+            
+
+            
+        }
+        return false;
     }
 
 
