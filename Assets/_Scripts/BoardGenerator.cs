@@ -1,3 +1,5 @@
+using JetBrains.Annotations;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Tilemaps;
@@ -11,7 +13,9 @@ public class BoardGenerator : MonoBehaviour
     [SerializeField] private float camaraX = 3.5f, cameraY = 3.5f, cameraSize = 5f;
     
 
-    private GameObject[,] board = new GameObject[8, 8];
+    public GameObject[,] board = new GameObject[8, 8];
+
+    //public static int [,] coordinates = new int[8,8];
     public Color[,] boardColorMap = new Color[8,8];
 
     void Start()
@@ -43,7 +47,8 @@ public class BoardGenerator : MonoBehaviour
                 
 
                 newTile.GetComponent<SpriteRenderer>().color = isOffset ? tileColor1 : tileColor2;
-            
+
+
                 
                 board[x, y] = newTile;
 

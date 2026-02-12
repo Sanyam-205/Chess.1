@@ -625,8 +625,6 @@ MonoBehaviour:
   rotationTime: 0.8
   pieceManager: {fileID: 1835462044}
   movementSystem: {fileID: 1917054807}
-  whiteKingPos: {x: 0, y: 0}
-  blackKingPos: {x: 0, y: 0}
   currentState: 0
 --- !u!4 &1917054806
 Transform:
@@ -656,9 +654,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Movement
   pieceManager: {fileID: 1835462045}
-  piece: {fileID: 0}
-  boardGenerator: {fileID: 74110720}
-  gameManager: {fileID: 1917054805}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -16,10 +16,11 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] GameObject pieceManager;
     [SerializeField] Movement movementSystem;
-    private Square sourceSquare = null;
-
+    
     private bool isFlipped = false, isBusy = false;
     private Square selectedSquare;
+    public Vector2Int whiteKingPos;
+    public Vector2Int blackKingPos;
     public enum GameState
     {
         WhiteTurn,
@@ -46,9 +47,11 @@ public class GameManager : MonoBehaviour
        //pieceManager script =pieceManager.GetComponent<PieceManager>(); 
     }
 
+    
     void Start()
     {
         pieceManager.GetComponent<PieceManager>().SpawnPieces(gridPivot.transform);
+        InitializeKingPositions();
         //Game starts as white
         currentState = GameState.WhiteTurn;
     }
@@ -56,6 +59,14 @@ public class GameManager : MonoBehaviour
     {
         if (!canAcceptInput()) return;
 
+        if (Keyboard.current.wKey.wasPressedThisFrame)
+        {
+            currentState = GameState.WhiteTurn;
+        }
+        if (Keyboard.current.bKey.wasPressedThisFrame)
+        {
+            currentState = GameState.BlackTurn;
+        }
 
         HandleInput();
         
@@ -91,6 +102,7 @@ public class GameManager : MonoBehaviour
     {
          if (selectedSquare!=null)
             {
+                movementSystem.ClearHighlights();
                 selectedSquare.SetHighlight(false);
                 selectedSquare = null;
             // Square DeSquare = hit.collider.GetComponent<Square>();
@@ -208,6 +220,7 @@ public class GameManager : MonoBehaviour
                 if (pieceOnSquare != null && IsMyTurn(pieceOnSquare))
                 {
                     SelectSquare(clickedSquare);
+                    movementSystem.GridScanner(clickedSquare);
                 }
             }
             // Case 2: We already have a piece selected
@@ -222,19 +235,32 @@ public class GameManager : MonoBehaviour
                 else if (pieceOnSquare != null && IsMyTurn(pieceOnSquare))
                 {
                     DeSelectSquare();        // Unhighlight the old one
-                    SelectSquare(clickedSquare); // Highlight the new one
+                    SelectSquare(clickedSquare);
+                    movementSystem.GridScanner(clickedSquare);
+                    
+                    
+                     // Highlight the new one
                 }
                 // 2c: Clicked an Empty square or an Enemy -> Try to Move
                 else
                 {
+                    Piece movingPiece = pManager.GetPieceAtGrid(selectedSquare.x, selectedSquare.y);
                     
                     /// Call MovePiece and check if it returned TRUE (Success)
                     bool moveWasSuccessful = movementSystem.MovePiece(selectedSquare, clickedSquare);
 
                     if (moveWasSuccessful)
                     {
+                        // Track King Position
+                        if (movingPiece.type == PieceType.King)
+                        {
+                            if (movingPiece.team == TeamColor.White) whiteKingPos = new Vector2Int(clickedSquare.x, clickedSquare.y);
+                            else blackKingPos = new Vector2Int(clickedSquare.x, clickedSquare.y);
+                        }
+
                         // Move worked! End the turn.
                         DeSelectSquare();
+                        
                         //CompleteTurn(); // Rotates board + Switches state
                         SwitchTurn();
                         Debug.Log(currentState);
@@ -269,7 +295,22 @@ private bool IsMyTurn(Piece piece)
     return false;
 }
 
-
+    private void InitializeKingPositions()
+    {
+        PieceManager pManager = pieceManager.GetComponent<PieceManager>();
+        for (int x = 0; x < 8; x++)
+        {
+            for (int y = 0; y < 8; y++)
+            {
+                Piece p = pManager.GetPieceAtGrid(x, y);
+                if (p != null && p.type == PieceType.King)
+                {
+                    if (p.team == TeamColor.White) whiteKingPos = new Vector2Int(x, y);
+                    else blackKingPos = new Vector2Int(x, y);
+                }
+            }
+        }
+    }
 
 
 }

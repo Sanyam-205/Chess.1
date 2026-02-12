@@ -14,6 +14,11 @@ public class PieceManager : MonoBehaviour
         if (x < 0 || x >= 8 || y < 0 || y >= 8) return null;
         return pieceGrid[x,y];
     }
+    public void SetPieceAtGrid(int x, int y, Piece piece)
+    {
+        if (x < 0 || x >= 8 || y < 0 || y >= 8) return;
+        pieceGrid[x,y] = piece;
+    }
 
     public void UpdateGrid(int oldX, int oldY, int newX, int newY, Piece piece)
     {
