@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 using Unity.VisualScripting;
 using UnityEditor;
 using Unity.Collections;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
@@ -16,6 +17,9 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] GameObject pieceManager;
     [SerializeField] Movement movementSystem;
+
+    [SerializeField] TextMeshProUGUI gameStateText;
+    string stateText = "";
     
     private bool isFlipped = false, isBusy = false;
     private Square selectedSquare;
@@ -26,7 +30,10 @@ public class GameManager : MonoBehaviour
         WhiteTurn,
         BlackTurn,
         Checkmate,
-        Stalemate
+        Stalemate,
+        WhiteWin,
+        BlackWin,
+        PendingPromotion
     }
     public GameState currentState;
 
@@ -52,6 +59,7 @@ public class GameManager : MonoBehaviour
     {
         pieceManager.GetComponent<PieceManager>().SpawnPieces(gridPivot.transform);
         InitializeKingPositions();
+        DisplayGameState();
         //Game starts as white
         currentState = GameState.WhiteTurn;
     }
@@ -71,6 +79,39 @@ public class GameManager : MonoBehaviour
         HandleInput();
         
     }
+    
+    public void DisplayGameState()
+    {
+        
+        switch(currentState)
+        {
+            case GameState.WhiteTurn:
+                stateText = "White's Turn";
+                break;
+
+            case GameState.BlackTurn:
+                stateText = "Black's Turn";
+                break;
+            case GameState.WhiteWin:
+                stateText = "White won by checkmate!";
+                break;
+            case GameState.BlackWin:
+                stateText = "Black win by checkmate!";
+                break;
+            case GameState.PendingPromotion:
+                stateText = "Pending Promotion. \n Press 'q' to promote to Queen \n Press 'r' to promote to Rook \n Press 'b' to promote to bishop \n Press 'k' to promote to Knight.";
+                break;
+             case GameState.Stalemate:
+                stateText = "Draw!";
+                break;
+            default:
+                stateText = "Unknown State";
+                break;
+        
+        }
+        
+        gameStateText.text = stateText;
+    }
 
     private void HandleInput()
     {
@@ -79,24 +120,7 @@ public class GameManager : MonoBehaviour
             ProcessClick();
         }
     }
-    // private void ProcessClick()
-    // {
-    //     Vector2 mousPos = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
-    //     RaycastHit2D hit = Physics2D.Raycast(mousPos, Vector2.zero);
-    //     if (hit.collider != null)
-    //     {
-    //         Square clickedSquare = hit.collider.GetComponent<Square>();
-    //         if (clickedSquare!= null)
-    //         {
-    //             SelectSquare(clickedSquare);
-    //         }
-            
-    //     }
-    //     if(hit.collider == null)
-    //     {
-    //        DeSelectSquare();
-    //     }
-    // }
+   
 
     private  void DeSelectSquare ()
     {
@@ -134,17 +158,47 @@ public class GameManager : MonoBehaviour
         
     }
 
-    private void SwitchTurn()
+    public void SwitchTurn()
     {
-        if (currentState == GameState.WhiteTurn)
+        
+        if(currentState == GameState.PendingPromotion) 
         {
-            currentState = GameState.BlackTurn;
+            DisplayGameState();
+            return;
+        }
+        
+        if(movementSystem.IsInsufficientMaterial())
+        {
+            currentState = GameState.Stalemate;
+            DisplayGameState();
+            return;
         }
 
+        
+        if (currentState == GameState.WhiteTurn)
+        {
+            //movementSystem.CheckForCheckMate(TeamColor.White);
+            currentState = GameState.BlackTurn;
+            DisplayGameState();
+            if(movementSystem.CheckForGameEnd(TeamColor.Black))
+            {
+                DisplayGameState();
+                return;
+            }
+        }
+        
         else if (currentState == GameState.BlackTurn)
         {
+            //movementSystem.CheckForCheckMate(TeamColor.Black);
             currentState = GameState.WhiteTurn;
+            DisplayGameState();
+            if(movementSystem.CheckForGameEnd(TeamColor.White))
+            {
+                DisplayGameState();
+                return;
+            }
         }
+        
     }
 
     private bool canAcceptInput ()
@@ -262,7 +316,7 @@ public class GameManager : MonoBehaviour
                         DeSelectSquare();
                         
                         //CompleteTurn(); // Rotates board + Switches state
-                        SwitchTurn();
+                        // SwitchTurn();
                         Debug.Log(currentState);
                     }
                     else

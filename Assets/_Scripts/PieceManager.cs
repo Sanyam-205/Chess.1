@@ -51,7 +51,7 @@ public class PieceManager : MonoBehaviour
         }
     }
 
-    private void SpawnSinglePiece(PieceType type, TeamColor team, int x, int y, Transform gridParent)
+    public void SpawnSinglePiece(PieceType type, TeamColor team, int x, int y, Transform gridParent)
     {
         Vector3 spawnPos = new Vector3(x,y,-1);
         GameObject newPieceGO = Instantiate(piecePrefab, spawnPos, Quaternion.identity);
@@ -69,4 +69,20 @@ public class PieceManager : MonoBehaviour
         pieceGrid[x,y] = newPiece;
     }
 
+    public void PromotePawn(PieceType pieceType)
+    {
+        
+    }
+
+
+
+
+
+
+
+
+
 }
+
+
+
