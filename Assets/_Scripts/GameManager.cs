@@ -71,15 +71,6 @@ public class GameManager : MonoBehaviour
         // Unused Rotation code
         // if (!canAcceptInput()) return;
 
-        if (Keyboard.current.wKey.wasPressedThisFrame)
-        {
-            currentState = GameState.WhiteTurn;
-        }
-        if (Keyboard.current.eKey.wasPressedThisFrame)
-        {
-            currentState = GameState.BlackTurn;
-        }
-
         HandleInput();
         
     }

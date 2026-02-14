@@ -91,6 +91,13 @@ This project strengthened understanding of:
 
 ---
 
+## Play Online
+
+WebGL build available on itch.io:  
+[Play Here](https://sanyam-20.itch.io/chess1)
+
+---
+
 ## Status
 
 Version 1 complete – full classical chess rules implemented.
