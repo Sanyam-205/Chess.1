@@ -23,31 +23,35 @@ public class Square : MonoBehaviour
     }
     // Inside Square.cs
     private bool isKingInCheck = false; // New flag
+    private bool isSelected = false;
 
     public void SetCheckHighlight(bool active)
     {
+        if (isKingInCheck == active) return;
         isKingInCheck = active;
-        
-        if (active)
-        {
-            // Make it distinct (e.g., Deep Red)
-            spriteRenderer.color = Color.red; 
-        }
-        else
-        {
-            // Reset to normal board color
-            ResetColor(); 
-        }
+        UpdateColor();
     }
 
     // Update your existing ResetColor/HideHighlight method:
     public void ResetColor()
     {
-        // CRITICAL: If this square is a King in Check, ignore the reset signal!
-        if (isKingInCheck) return; 
+        UpdateColor();
+    }
 
-        // Otherwise, go back to Black/White or original color
-        spriteRenderer.color = originalColor; 
+    private void UpdateColor()
+    {
+        if (isSelected)
+        {
+            spriteRenderer.color = highlightColor;
+        }
+        else if (isKingInCheck) 
+        {
+            spriteRenderer.color = Color.red;
+        }
+        else
+        {
+            spriteRenderer.color = originalColor; 
+        }
     }
     // void Start()
     // {
@@ -56,15 +60,30 @@ public class Square : MonoBehaviour
     // }
     public void SetHighlight (bool highlighted)
     {
-        spriteRenderer.color = highlighted? highlightColor : originalColor;
+        isSelected = highlighted;
+        UpdateColor();
     }
 
      public void SetHighlight2 (bool highlighted)
     {
-        spriteRenderer.color = highlighted? highlightColor2 : originalColor;
+        if (highlighted)
+        {
+            spriteRenderer.color = highlightColor2;
+        }
+        else
+        {
+            ResetColor();
+        }
     }
     public void SetHighlight3(bool highlighted)
     {
-        spriteRenderer.color = highlighted? highlightColor3 : originalColor;
+        if (highlighted)
+        {
+            spriteRenderer.color = highlightColor3;
+        }
+        else
+        {
+            ResetColor();
+        }
     }
 }

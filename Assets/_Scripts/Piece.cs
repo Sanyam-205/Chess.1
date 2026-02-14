@@ -17,6 +17,7 @@ public enum TeamColor
 public class Piece : MonoBehaviour
 {
 
+    public bool hasMoved = false;
     public PieceType type;
     public TeamColor team;
     private SpriteRenderer spriteRenderer;

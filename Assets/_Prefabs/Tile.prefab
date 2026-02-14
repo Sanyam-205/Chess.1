@@ -154,5 +154,5 @@ MonoBehaviour:
   x: 0
   y: 0
   highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  highlightColor2: {r: 0.7660377, g: 0.6700708, b: 0.32231393, a: 0.5803922}
+  highlightColor2: {r: 0.7607843, g: 0.7372549, b: 0.5568628, a: 1}
   highlightColor3: {r: 0.8627452, g: 0.07843138, b: 0.2352941, a: 1}

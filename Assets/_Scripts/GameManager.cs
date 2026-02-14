@@ -15,10 +15,11 @@ public class GameManager : MonoBehaviour
     [Header("rotation time")]
     [SerializeField]  float rotationTime = 1f;
 
-    [SerializeField] GameObject pieceManager;
+    [SerializeField] GameObject pieceManager, instructionsGO, buttonsGO;
     [SerializeField] Movement movementSystem;
 
     [SerializeField] TextMeshProUGUI gameStateText;
+    [SerializeField] Button startButton;
     string stateText = "";
     
     private bool isFlipped = false, isBusy = false;
@@ -29,11 +30,11 @@ public class GameManager : MonoBehaviour
     {
         WhiteTurn,
         BlackTurn,
-        Checkmate,
         Stalemate,
         WhiteWin,
         BlackWin,
-        PendingPromotion
+        PendingPromotion,
+        AwaitingStart
     }
     public GameState currentState;
 
@@ -60,8 +61,10 @@ public class GameManager : MonoBehaviour
         pieceManager.GetComponent<PieceManager>().SpawnPieces(gridPivot.transform);
         InitializeKingPositions();
         DisplayGameState();
+        instructionsGO.SetActive(false);
+        buttonsGO.SetActive(true);
         //Game starts as white
-        currentState = GameState.WhiteTurn;
+        currentState = GameState.AwaitingStart;
     }
     void Update()
     {
@@ -71,13 +74,20 @@ public class GameManager : MonoBehaviour
         {
             currentState = GameState.WhiteTurn;
         }
-        if (Keyboard.current.bKey.wasPressedThisFrame)
+        if (Keyboard.current.eKey.wasPressedThisFrame)
         {
             currentState = GameState.BlackTurn;
         }
 
         HandleInput();
         
+    }
+
+    public void OnStart()
+    {
+        currentState = GameState.WhiteTurn;
+        buttonsGO.SetActive(false);
+        instructionsGO.SetActive(true);
     }
     
     public void DisplayGameState()
@@ -93,14 +103,22 @@ public class GameManager : MonoBehaviour
                 stateText = "Black's Turn";
                 break;
             case GameState.WhiteWin:
-                stateText = "White won by checkmate!";
+                stateText = "White wins by checkmate!";
                 break;
             case GameState.BlackWin:
-                stateText = "Black win by checkmate!";
+                stateText = "Black wins by checkmate!";
                 break;
             case GameState.PendingPromotion:
-                stateText = "Pending Promotion. \n Press 'q' to promote to Queen \n Press 'r' to promote to Rook \n Press 'b' to promote to bishop \n Press 'k' to promote to Knight.";
+                stateText = "Pending Promotion. \n Press 'q' to promote to Queen \n Press 'r' to promote to Rook \n Press 'b' to promote to Bishop \n Press 'k' to promote to Knight.";
                 break;
+
+                /*
+Pending Promotion
+Press 'q' to promote to Queen
+ress 'r' to promote to Rook
+Press 'b' to promote to bishop
+Press 'k' to promote to Knight
+                */
              case GameState.Stalemate:
                 stateText = "Draw!";
                 break;

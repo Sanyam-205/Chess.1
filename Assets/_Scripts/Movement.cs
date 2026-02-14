@@ -7,6 +7,8 @@ using Unity.Collections;
 using UnityEditor.Rendering;
 using UnityEditor;
 using UnityEngine.InputSystem;
+using UnityEngine.AI;
+using System.Net;
 
 public class Movement : MonoBehaviour
 {
@@ -15,67 +17,141 @@ public class Movement : MonoBehaviour
     [SerializeField] private BoardGenerator boardGenerator;
     [SerializeField] private GameManager gameManager;
     int deltaX, deltaY;
-    public Piece promotedPiece;
+    public Piece promotedPiece, enPasantVulnerablePawn;
+    Square enPasantStartSquare, enPasantEndSquare;
+    
     Vector2Int kingPos;
-
     public bool MovePiece(Square startSquare, Square endSquare)
     {   
         Piece pieceToMove = pieceManager.GetPieceAtGrid (startSquare.x, startSquare.y);
-
-        
-        
-        // finalSquare = endSquare;
-        
-        // initialSquare = startSquare;
-        
         if (pieceToMove == null) return false;
 
         Piece OccupiedPiece = pieceManager.GetPieceAtGrid(endSquare.x, endSquare.y);
 
-        if(!CanPieceMove(pieceToMove, startSquare, endSquare)) return false;
+        
 
-        if(OccupiedPiece != null)
+        // ---------------------------------------------------------
+        // 1. VALIDATION AND SECONDARY MOVEMENT (The Split Path)
+        // ---------------------------------------------------------
+        if ((pieceToMove.type == PieceType.King) && Math.Abs(endSquare.x - startSquare.x) == 2)
         {
-            if(pieceToMove.team == OccupiedPiece.team)
+            // CASTLING PATH
+            if (!CanCastle (pieceToMove, startSquare, endSquare)) return false;
+
+            int direction = (endSquare.x - startSquare.x > 0) ? 1 : -1;
+            int rookOrgX = (direction == 1) ? 7 : 0;
+            int rookTargetX = (direction == 1) ? 5 : 3;
+
+            Piece rook = pieceManager.GetPieceAtGrid(rookOrgX, startSquare.y);
+
+            if (rook != null)
             {
-                return false; 
+                Square rookTargetSq = boardGenerator.board[rookTargetX, startSquare.y].GetComponent<Square>();
                 
+                // Move Rook Physically
+                rook.transform.position = new Vector3(rookTargetSq.transform.position.x, rookTargetSq.transform.position.y, -1);
+                
+                // Move Rook Data
+                pieceManager.UpdateGrid(rookOrgX, startSquare.y, rookTargetX, startSquare.y, rook);
+                rook.hasMoved = true;
             }
-            Piece enemyPiece = OccupiedPiece;
-            Destroy(enemyPiece.gameObject);
         }
+        else
+        
+        {
+            // STANDARD MOVE PATH
+            if (!CanPieceMove(pieceToMove, startSquare, endSquare)) return false;
+
+            if ((pieceToMove.type == PieceType.Pawn)&& (startSquare.x != endSquare.x))
+            {
+                if (enPasantVulnerablePawn!= null)
+                {
+                    
+                    
+                    if (enPasantStartSquare.x == endSquare.x &&
+                        enPasantEndSquare.y == startSquare.y)
+                    {
+                        Destroy(enPasantVulnerablePawn.gameObject);
+                    }
+                }
+            }
+            
+            if (OccupiedPiece != null)
+            {
+                if (pieceToMove.team == OccupiedPiece.team) return false; 
+                
+                Piece enemyPiece = OccupiedPiece;
+                Destroy(enemyPiece.gameObject);
+            }
+        }
+
+        
+
+        // ---------------------------------------------------------
+        // 2. PRIMARY MOVEMENT (The Common Path)
+        // Both Castling AND Standard moves need this to happen!
+        // ---------------------------------------------------------
         Vector3 targetPos = endSquare.transform.position;
-
         pieceToMove.transform.position = new Vector3(targetPos.x, targetPos.y, -1);
-
         pieceManager.UpdateGrid(startSquare.x, startSquare.y, endSquare.x, endSquare.y, pieceToMove);
         
+        // CRITICAL: Ensure the piece knows it has moved!
+        pieceToMove.hasMoved = true; 
         
         ClearHighlights();
         
-        
-        
-        // pieceToMove.transform.position = new Vector3(endSquare.x, endSquare.y, -1);
-        // pieceManager.UpdateGrid(startSquare.x, startSquare.y, endSquare.x, endSquare.y, pieceToMove);
-    
+        enPasantVulnerablePawn = null;
+        if((pieceToMove.type == PieceType.Pawn) && Math.Abs(endSquare.y - startSquare.y) == 2)
+        {
+            enPasantVulnerablePawn = pieceToMove;
+            enPasantStartSquare = startSquare;
+            enPasantEndSquare = endSquare;
+        }
+
+        // ---------------------------------------------------------
+        // 3. PROMOTION AND TURN SWITCHING
+        // ---------------------------------------------------------
         if (CheckPromotionSquareReached(pieceToMove, endSquare))
         {
-            // A. Save the Pawn so we can delete it LATER (after pressing Q/R/B/K)
             promotedPiece = pieceToMove; 
-
-            // B. Pause the game loop
             gameManager.currentState = GameManager.GameState.PendingPromotion;
             gameManager.DisplayGameState();
-
-            // C. Return true to finish the move, BUT DO NOT SwitchTurn() yet!
             return true; 
         }
-       
+
         gameManager.SwitchTurn();
         return true;
-    
     }
+    public bool CanCastle (Piece king, Square kingSquare, Square targetSquare)
+    {
+        if(king.hasMoved) return false;
+        //if(targetSquare != null) return false;
+        int direction = (targetSquare.x - kingSquare.x > 0)? 1: -1;
+        int rookX = (direction == 1)? 7: 0;
+        int rookY = kingSquare.y;
 
+        Piece rook = pieceManager.GetPieceAtGrid(rookX, rookY);
+        if (rook == null || rook.type != PieceType.Rook || rook.team != king.team || rook.hasMoved == true) return false;
+
+        for (int i = 1; i < Math.Abs(targetSquare.x - kingSquare.x); i++)
+        {
+            if (pieceManager.GetPieceAtGrid((kingSquare.x + (1*direction)), rookY) != null) return false;
+        }
+
+        // Is king currently in Check?
+        if(IsSquareUnderAttack(new Vector2Int (kingSquare.x, kingSquare.y), (king.team == TeamColor.White) ? TeamColor.Black : TeamColor.White)) return false;
+
+        Vector2Int middleSquare = new Vector2Int(kingSquare.x + direction, kingSquare.y);
+        Vector2Int destSquare = new Vector2Int(targetSquare.x, targetSquare.y);
+        
+
+        TeamColor enemyTeam = (king.team == TeamColor.White) ? TeamColor.Black : TeamColor.White;
+        //Check if castling makes king move through check
+        if (IsSquareUnderAttack(middleSquare, enemyTeam)) return false; // Crossing check
+        if (IsSquareUnderAttack(destSquare, enemyTeam)) return false;
+
+        return true;
+    }
     public bool CheckPromotionSquareReached(Piece piece, Square endSquare)
     {
         if(piece.type == PieceType.Pawn)
@@ -120,7 +196,7 @@ public class Movement : MonoBehaviour
             if (Keyboard.current.qKey.wasPressedThisFrame) PromotePawn(PieceType.Queen);
             if (Keyboard.current.rKey.wasPressedThisFrame) PromotePawn(PieceType.Rook);
             if (Keyboard.current.kKey.wasPressedThisFrame) PromotePawn(PieceType.Knight);
-            if (Keyboard.current.cKey.wasPressedThisFrame) PromotePawn(PieceType.Bishop);
+            if (Keyboard.current.bKey.wasPressedThisFrame) PromotePawn(PieceType.Bishop);
         }
     }
 
@@ -178,6 +254,27 @@ public class Movement : MonoBehaviour
                 {
                     return true; 
                 }
+                if (targetPiece == null && enPasantVulnerablePawn != null)
+            {
+                // The vulnerable pawn must be "Next to" our start position
+                // Logic: It should be at [end.x] (the file we are moving to)
+                // and [start.y] (the rank we are currently on).
+                
+                Piece vulnerablePawn = enPasantVulnerablePawn;
+                
+                // Check coordinates (assuming your Piece script has x/y or transforms)
+                int vPawnX = (int)vulnerablePawn.transform.position.x;
+                int vPawnY = (int)vulnerablePawn.transform.position.y;
+
+                if (vPawnX == end.x && vPawnY == start.y)
+                {
+                    // Also ensure it's an enemy!
+                    if (vulnerablePawn.team != piece.team)
+                    {
+                        return true;
+                    }
+                }
+            }
             }
             
             
@@ -217,6 +314,10 @@ public class Movement : MonoBehaviour
             {
                 return true;
             }
+            // if(piece.hasMoved == false)
+            // {
+            //     return true;   
+            // }
             break;
             
         }
@@ -228,18 +329,37 @@ public class Movement : MonoBehaviour
     
     
     // Returns TRUE if the move DOES NOT leave the King in check
+
     private bool IsMoveSafe(Piece piece, Square start, Square end)
     {
-        // 1. Snapshot the current board state
-        Piece targetPiece = pieceManager.GetPieceAtGrid(end.x, end.y); // The piece we might capture
-        Piece movingPiece = pieceManager.GetPieceAtGrid(start.x, start.y); // The piece moving
+        // 1. SNAPSHOT CURRENT STATE
+        Piece targetPiece = pieceManager.GetPieceAtGrid(end.x, end.y);
+        Piece movingPiece = pieceManager.GetPieceAtGrid(start.x, start.y);
+
+        bool isEnPassant = false;
+        Piece enPassantVictim = null;
+
+        // Check: Is it a Pawn moving Diagonally to an Empty Square?
+        if (piece.type == PieceType.Pawn && start.x != end.x && targetPiece == null)
+        {
+            isEnPassant = true;
+            enPassantVictim = enPasantVulnerablePawn; 
+        }
 
         // 2. APPLY THE VIRTUAL MOVE
-        // Move the piece in the data grid (not visually)
         pieceManager.SetPieceAtGrid(end.x, end.y, movingPiece);
         pieceManager.SetPieceAtGrid(start.x, start.y, null);
 
-        // Track the King's position (in case the King itself is moving!)
+        // --- EN PASSANT SPECIAL STEP ---
+        // The victim is located at [end.x, start.y]
+        if (isEnPassant && enPassantVictim != null)
+        {
+            // Hide the victim using derived coordinates
+            pieceManager.SetPieceAtGrid(end.x, start.y, null);
+        }
+        // -------------------------------
+
+        // Track the King's position
         Vector2Int kingPos = (piece.team == TeamColor.White) ? gameManager.whiteKingPos : gameManager.blackKingPos;
         if (piece.type == PieceType.King)
         {
@@ -247,18 +367,22 @@ public class Movement : MonoBehaviour
         }
         
         // 3. CHECK FOR DANGER
-        // Is the King under attack in this new reality?
         bool kingInCheck = IsSquareUnderAttack(kingPos, (piece.team == TeamColor.White) ? TeamColor.Black : TeamColor.White);
 
-        // 4. UNDO THE MOVE (CRITICAL!)
-        // Put everything back exactly how it was
+        // 4. UNDO THE MOVE (Restore everything)
         pieceManager.SetPieceAtGrid(start.x, start.y, movingPiece);
         pieceManager.SetPieceAtGrid(end.x, end.y, targetPiece);
 
-        // 5. Result
-        return !kingInCheck; // If king is in check return false
-    }
+        // --- EN PASSANT RESTORE STEP ---
+        // Put the victim back at [end.x, start.y]
+        if (isEnPassant && enPassantVictim != null)
+        {
+            pieceManager.SetPieceAtGrid(end.x, start.y, enPassantVictim);
+        }
+        // -------------------------------
 
+        return !kingInCheck;
+    }
     public bool CanPieceMove(Piece piece, Square start, Square end)
     {
         
@@ -447,6 +571,15 @@ public class Movement : MonoBehaviour
                     Square targetSquare = tileObject.GetComponent<Square>();
                     bool isValid = IsValidPatern(selectedPiece, selectedSquare, targetSquare);
 
+                    // Special check for Castling (since we removed it from IsValidPatern to avoid recursion)
+                    if (!isValid && selectedPiece.type == PieceType.King && Math.Abs(targetSquare.x - selectedSquare.x) == 2 && targetSquare.y == selectedSquare.y)
+                    {
+                        if (CanCastle(selectedPiece, selectedSquare, targetSquare))
+                        {
+                            isValid = true;
+                        }
+                    }
+
                     // 1. Get the piece at the target (if any)
                     Piece targetPiece = pieceManager.GetPieceAtGrid(targetSquare.x, targetSquare.y);
 
@@ -466,15 +599,16 @@ public class Movement : MonoBehaviour
                         if (IsMoveSafe(selectedPiece, selectedSquare, targetSquare))
                         {
                             if (targetPiece != null)
-                                {
-                                    // Case A: Valid move + Piece exists = MUST be Enemy (Attack)
-                                    targetSquare.SetHighlight3(true); 
-                                }
-                                else
-                                {
-                                    // Case B: Valid move + No piece = Empty Square (Movement)
-                                    targetSquare.SetHighlight2(true); 
-                                }
+                            {
+                                // Case A: Valid move + Piece exists = MUST be Enemy (Attack)
+                                targetSquare.SetHighlight3(true); 
+                            }
+                            
+                            else
+                            {
+                                // Case B: Valid move + No piece = Empty Square (Movement)
+                                targetSquare.SetHighlight2(true); 
+                            }
                         }
                     }
                 }
@@ -489,14 +623,21 @@ public class Movement : MonoBehaviour
 
     public void UpdateKingState()
     {
-        // 1. Get the Kings' current Squares
-        // (Assuming you have access to the Square scripts via your board array)
+        // 1. Clear all check highlights to prevent trails
+        for (int x = 0; x < 8; x++)
+        {
+            for (int y = 0; y < 8; y++)
+            {
+                if (boardGenerator.board[x, y] != null)
+                {
+                    boardGenerator.board[x, y].GetComponent<Square>().SetCheckHighlight(false);
+                }
+            }
+        }
+
+        // 2. Get the Kings' current Squares
         Square whiteKingSquare = boardGenerator.board[gameManager.whiteKingPos.x, gameManager.whiteKingPos.y].GetComponent<Square>();
         Square blackKingSquare = boardGenerator.board[gameManager.blackKingPos.x, gameManager.blackKingPos.y].GetComponent<Square>();
-
-        // 2. Reset them to normal (remove old red highlights)
-        whiteKingSquare.ResetColor(); 
-        blackKingSquare.ResetColor();
 
         // 3. Check White King's Safety
         // We reuse the exact same logic IsMoveSafe uses!
