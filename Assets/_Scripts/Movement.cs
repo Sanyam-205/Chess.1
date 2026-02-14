@@ -1,14 +1,6 @@
 using UnityEngine;
-using System.Collections.Generic;
-using Unity.VisualScripting;
-using JetBrains.Annotations;
 using System;
-using Unity.Collections;
-using UnityEditor.Rendering;
-using UnityEditor;
 using UnityEngine.InputSystem;
-using UnityEngine.AI;
-using System.Net;
 
 public class Movement : MonoBehaviour
 {
@@ -27,12 +19,9 @@ public class Movement : MonoBehaviour
         if (pieceToMove == null) return false;
 
         Piece OccupiedPiece = pieceManager.GetPieceAtGrid(endSquare.x, endSquare.y);
-
-        
-
-        // ---------------------------------------------------------
+       
         // 1. VALIDATION AND SECONDARY MOVEMENT (The Split Path)
-        // ---------------------------------------------------------
+       
         if ((pieceToMove.type == PieceType.King) && Math.Abs(endSquare.x - startSquare.x) == 2)
         {
             // CASTLING PATH
@@ -87,10 +76,9 @@ public class Movement : MonoBehaviour
 
         
 
-        // ---------------------------------------------------------
         // 2. PRIMARY MOVEMENT (The Common Path)
         // Both Castling AND Standard moves need this to happen!
-        // ---------------------------------------------------------
+    
         Vector3 targetPos = endSquare.transform.position;
         pieceToMove.transform.position = new Vector3(targetPos.x, targetPos.y, -1);
         pieceManager.UpdateGrid(startSquare.x, startSquare.y, endSquare.x, endSquare.y, pieceToMove);
@@ -108,9 +96,8 @@ public class Movement : MonoBehaviour
             enPasantEndSquare = endSquare;
         }
 
-        // ---------------------------------------------------------
+   
         // 3. PROMOTION AND TURN SWITCHING
-        // ---------------------------------------------------------
         if (CheckPromotionSquareReached(pieceToMove, endSquare))
         {
             promotedPiece = pieceToMove; 
@@ -125,7 +112,6 @@ public class Movement : MonoBehaviour
     public bool CanCastle (Piece king, Square kingSquare, Square targetSquare)
     {
         if(king.hasMoved) return false;
-        //if(targetSquare != null) return false;
         int direction = (targetSquare.x - kingSquare.x > 0)? 1: -1;
         int rookX = (direction == 1)? 7: 0;
         int rookY = kingSquare.y;
@@ -147,7 +133,7 @@ public class Movement : MonoBehaviour
 
         TeamColor enemyTeam = (king.team == TeamColor.White) ? TeamColor.Black : TeamColor.White;
         //Check if castling makes king move through check
-        if (IsSquareUnderAttack(middleSquare, enemyTeam)) return false; // Crossing check
+        if (IsSquareUnderAttack(middleSquare, enemyTeam)) return false; 
         if (IsSquareUnderAttack(destSquare, enemyTeam)) return false;
 
         return true;
@@ -249,7 +235,7 @@ public class Movement : MonoBehaviour
             {
                 Piece targetPiece = pieceManager.GetPieceAtGrid(end.x, end.y);
 
-                // Is there a piece there? AND is it on the other team?
+                
                 if (targetPiece != null && targetPiece.team != piece.team)
                 {
                     return true; 
@@ -314,10 +300,7 @@ public class Movement : MonoBehaviour
             {
                 return true;
             }
-            // if(piece.hasMoved == false)
-            // {
-            //     return true;   
-            // }
+            
             break;
             
         }
@@ -327,8 +310,6 @@ public class Movement : MonoBehaviour
         return false;
     }
     
-    
-    // Returns TRUE if the move DOES NOT leave the King in check
 
     private bool IsMoveSafe(Piece piece, Square start, Square end)
     {
@@ -357,7 +338,6 @@ public class Movement : MonoBehaviour
             // Hide the victim using derived coordinates
             pieceManager.SetPieceAtGrid(end.x, start.y, null);
         }
-        // -------------------------------
 
         // Track the King's position
         Vector2Int kingPos = (piece.team == TeamColor.White) ? gameManager.whiteKingPos : gameManager.blackKingPos;
@@ -379,28 +359,24 @@ public class Movement : MonoBehaviour
         {
             pieceManager.SetPieceAtGrid(end.x, start.y, enPassantVictim);
         }
-        // -------------------------------
+        
 
         return !kingInCheck;
     }
     public bool CanPieceMove(Piece piece, Square start, Square end)
     {
         
-        // Step 1: Geometry Check (Your existing big switch statement)
         if (!IsValidPatern(piece, start, end))
         {   
             return false;
         }
 
-        // Step 2: Safety Check (The Simulation)
         if (!IsMoveSafe(piece, start, end))
         {
             
             return false;
             
         }
-
-        // If we passed both checks, it's a legal move!
         
         return true;
     }
@@ -445,8 +421,7 @@ public class Movement : MonoBehaviour
         {
             if(!HasAnyLegalMoves(team))
             {
-                // Debug.Log("Checkmate" +  ((team == TeamColor.White)? "Black" : "White" ) + " wins") ;
-                // gameManager.currentState = GameManager.GameState.Checkmate;
+                
                 if(team == TeamColor.White)
                 {
                     Debug.Log("Black has won by checkmate!");
@@ -458,11 +433,7 @@ public class Movement : MonoBehaviour
                     gameManager.currentState = GameManager.GameState.WhiteWin;
                 }
             }
-            // else
-            // {
-            //     Debug.Log ("Check");
-            //     return false;
-            // }
+
         }
         else
         {
@@ -615,10 +586,6 @@ public class Movement : MonoBehaviour
             }
         }
     }
-
-    // Inside GameManager.cs
-
-
     
 
     public void UpdateKingState()

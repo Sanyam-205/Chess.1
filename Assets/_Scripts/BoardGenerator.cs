@@ -1,8 +1,6 @@
-using JetBrains.Annotations;
-using UnityEditor.ShaderGraph.Internal;
+using System;
 using UnityEngine;
-using UnityEngine.InputSystem;
-using UnityEngine.Tilemaps;
+
 
 public class BoardGenerator : MonoBehaviour
 {
@@ -15,13 +13,24 @@ public class BoardGenerator : MonoBehaviour
 
     public GameObject[,] board = new GameObject[8, 8];
 
-    //public static int [,] coordinates = new int[8,8];
+   
     public Color[,] boardColorMap = new Color[8,8];
 
     void Start()
     {
         GenerateBoard();
     }
+    void Awake() 
+{
+    // 1. If this array is static, it MUST be cleared manually!
+    if (board != null)
+    {
+        Array.Clear(board, 0, board.Length); 
+    }
+    
+    // 2. Re-initialize the array size (Crucial!)
+    board = new GameObject[8, 8]; 
+}
 
     void GenerateBoard()
     {
@@ -65,11 +74,5 @@ public class BoardGenerator : MonoBehaviour
         Camera.main.orthographicSize = cameraSize;
     }
 
-    void Update()
-    {
-        // if (Mouse.current.leftButton.wasPressedThisFrame)
-        // {
-        //     Debug.Log(OriginalColor);
-        // }
-    }
+    
 }

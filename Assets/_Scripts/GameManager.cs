@@ -1,28 +1,29 @@
-using System.Collections;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.InputSystem;
-using Unity.VisualScripting;
-using UnityEditor;
-using Unity.Collections;
 using TMPro;
+using UnityEngine.SceneManagement;
+
+
 
 public class GameManager : MonoBehaviour
 {
     [Header("Grid")]
     [SerializeField] private GameObject gridPivot;
     
-    [Header("rotation time")]
-    [SerializeField]  float rotationTime = 1f;
+    //Unused Rotation variables
+    // [Header("rotation time")]
+    // [SerializeField]  float rotationTime = 1f;
+    //private bool isFlipped = false, isBusy = false;
 
-    [SerializeField] GameObject pieceManager, instructionsGO, buttonsGO;
+    [SerializeField] GameObject pieceManager, instructionsGO, startButtonGO, playAgainGO;
     [SerializeField] Movement movementSystem;
 
     [SerializeField] TextMeshProUGUI gameStateText;
     [SerializeField] Button startButton;
     string stateText = "";
     
-    private bool isFlipped = false, isBusy = false;
+    
     private Square selectedSquare;
     public Vector2Int whiteKingPos;
     public Vector2Int blackKingPos;
@@ -42,18 +43,17 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance == null)
+       if (Instance != null && Instance != this)
         {
-            Instance = this;
-            DontDestroyOnLoad(gameObject); // Optional: keeps it alive between scenes
-        }
-        else
-        {
-            // If one already exists, destroy this duplicate
             Destroy(gameObject);
+            return;
         }
-       //pieceManager script =pieceManager.GetComponent<PieceManager>(); 
-    }
+        if (Instance = null)
+        {
+            Instance = this;  
+        }
+        
+    }    
 
     
     void Start()
@@ -62,13 +62,14 @@ public class GameManager : MonoBehaviour
         InitializeKingPositions();
         DisplayGameState();
         instructionsGO.SetActive(false);
-        buttonsGO.SetActive(true);
-        //Game starts as white
+        startButtonGO.SetActive(true);
+        playAgainGO.SetActive(false);
         currentState = GameState.AwaitingStart;
     }
     void Update()
     {
-        if (!canAcceptInput()) return;
+        // Unused Rotation code
+        // if (!canAcceptInput()) return;
 
         if (Keyboard.current.wKey.wasPressedThisFrame)
         {
@@ -86,12 +87,16 @@ public class GameManager : MonoBehaviour
     public void OnStart()
     {
         currentState = GameState.WhiteTurn;
-        buttonsGO.SetActive(false);
+        startButtonGO.SetActive(false);
         instructionsGO.SetActive(true);
     }
-    
+    public void PlayAgain()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
     public void DisplayGameState()
     {
+        RectTransform rect = playAgainGO.GetComponent<RectTransform>();
         
         switch(currentState)
         {
@@ -103,23 +108,22 @@ public class GameManager : MonoBehaviour
                 stateText = "Black's Turn";
                 break;
             case GameState.WhiteWin:
+                playAgainGO.SetActive(true);
+                rect.anchoredPosition = new Vector2 (485f, 2f);
                 stateText = "White wins by checkmate!";
                 break;
             case GameState.BlackWin:
+                playAgainGO.SetActive(true);
+                rect.anchoredPosition = new Vector2 (485f, -384f);
                 stateText = "Black wins by checkmate!";
                 break;
             case GameState.PendingPromotion:
                 stateText = "Pending Promotion. \n Press 'q' to promote to Queen \n Press 'r' to promote to Rook \n Press 'b' to promote to Bishop \n Press 'k' to promote to Knight.";
                 break;
-
-                /*
-Pending Promotion
-Press 'q' to promote to Queen
-ress 'r' to promote to Rook
-Press 'b' to promote to bishop
-Press 'k' to promote to Knight
-                */
              case GameState.Stalemate:
+                playAgainGO.SetActive(true);
+                rect.anchoredPosition = new Vector2 (-416f, -193f);
+                
                 stateText = "Draw!";
                 break;
             default:
@@ -147,8 +151,6 @@ Press 'k' to promote to Knight
                 movementSystem.ClearHighlights();
                 selectedSquare.SetHighlight(false);
                 selectedSquare = null;
-            // Square DeSquare = hit.collider.GetComponent<Square>();
-            // DeSelectSquare(DeSquare);
             }
     }
         
@@ -158,22 +160,10 @@ Press 'k' to promote to Knight
     {
         if (selectedSquare != null) selectedSquare.SetHighlight(false);
 
-    // Select new one
         selectedSquare = newSquare;
         selectedSquare.SetHighlight(true);
 
-       // CompleteTurn();
-    }
-
-    public void CompleteTurn()
-    {
-        isFlipped = !isFlipped;
-        float targetAngle = isFlipped?180f:0f;
        
-
-        StartCoroutine(RotateBoard(targetAngle));
-        SwitchTurn();        
-        
     }
 
     public void SwitchTurn()
@@ -195,7 +185,6 @@ Press 'k' to promote to Knight
         
         if (currentState == GameState.WhiteTurn)
         {
-            //movementSystem.CheckForCheckMate(TeamColor.White);
             currentState = GameState.BlackTurn;
             DisplayGameState();
             if(movementSystem.CheckForGameEnd(TeamColor.Black))
@@ -207,7 +196,6 @@ Press 'k' to promote to Knight
         
         else if (currentState == GameState.BlackTurn)
         {
-            //movementSystem.CheckForCheckMate(TeamColor.Black);
             currentState = GameState.WhiteTurn;
             DisplayGameState();
             if(movementSystem.CheckForGameEnd(TeamColor.White))
@@ -219,15 +207,13 @@ Press 'k' to promote to Knight
         
     }
 
-    private bool canAcceptInput ()
-    {
-        if(isBusy) return false;
+    
 
-        // check conditions go here
-
-        return true;
-    }
-
+/*
+------------------------------------------------------------------------------------
+    Removed Rotation feature. Switched CompleteTurn() with SwitchState()
+------------------------------------------------------------------------------------    
+    
     private IEnumerator RotateBoard (float targetRotation)
     {
         
@@ -247,6 +233,26 @@ Press 'k' to promote to Knight
         
         isBusy = false;
     }
+
+    public void CompleteTurn()
+    {
+        isFlipped = !isFlipped;
+        float targetAngle = isFlipped?180f:0f;
+       
+
+        StartCoroutine(RotateBoard(targetAngle));
+        SwitchTurn();        
+        
+    }
+    private bool canAcceptInput ()
+    {
+        if(isBusy) return false;
+
+
+        return true;
+    }
+
+*/
     
     Vector2 GetGridPos()
     {
@@ -255,9 +261,6 @@ Press 'k' to promote to Knight
         
         Vector3 mousePosition = Camera.main.ScreenToWorldPoint( mouseCoordinates );
 
-        // Vector3Int mousePos = Vector3Int.FloorToInt(mousePosition);
-
-        // Vector2Int mouseXYPos = new Vector2Int (mousePos.x, mousePos.y);
 
         Vector2 mouseXYPos = new Vector2(mousePosition.x, mousePosition.y);
 
@@ -360,7 +363,6 @@ private bool IsMyTurn(Piece piece)
 {
     if (piece == null) return false;
     
-    // Check if the piece color matches the current GameState
     if (currentState == GameState.WhiteTurn && piece.team == TeamColor.White) return true;
     if (currentState == GameState.BlackTurn && piece.team == TeamColor.Black) return true;
     

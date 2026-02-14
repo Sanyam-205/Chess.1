@@ -1,4 +1,3 @@
-using UnityEditor.U2D;
 using UnityEngine;
 
 public class Square : MonoBehaviour
@@ -21,8 +20,12 @@ public class Square : MonoBehaviour
         y = yPos;
         originalColor = colorFromGenerator;
     }
-    // Inside Square.cs
-    private bool isKingInCheck = false; // New flag
+    void Awake()
+    {
+        spriteRenderer = GetComponent<SpriteRenderer>();
+    }
+    
+    private bool isKingInCheck = false; 
     private bool isSelected = false;
 
     public void SetCheckHighlight(bool active)
@@ -32,7 +35,7 @@ public class Square : MonoBehaviour
         UpdateColor();
     }
 
-    // Update your existing ResetColor/HideHighlight method:
+    
     public void ResetColor()
     {
         UpdateColor();
@@ -53,11 +56,7 @@ public class Square : MonoBehaviour
             spriteRenderer.color = originalColor; 
         }
     }
-    // void Start()
-    // {
-    //     spriteRenderer = GetComponent<SpriteRenderer>();
-    //     originalColor = spriteRenderer.color;
-    // }
+    
     public void SetHighlight (bool highlighted)
     {
         isSelected = highlighted;

@@ -1,6 +1,5 @@
-using System.Security.Cryptography;
 using UnityEngine;
-using UnityEngine.InputSystem;
+
 public class PieceManager : MonoBehaviour
 {
     [Header("Elements")]
@@ -30,7 +29,6 @@ public class PieceManager : MonoBehaviour
     {
         for(int i = 0; i<8; i++)
         {
-             //pawns
             SpawnSinglePiece(PieceType.Pawn, TeamColor.White, i, 1, gridParent);
             SpawnSinglePiece(PieceType.Pawn, TeamColor.Black, i, 6, gridParent);
         }
@@ -69,18 +67,7 @@ public class PieceManager : MonoBehaviour
         pieceGrid[x,y] = newPiece;
     }
 
-    public void PromotePawn(PieceType pieceType)
-    {
-        
-    }
-
-
-
-
-
-
-
-
+    
 
 }
 
